@@ -11,7 +11,7 @@ class MessageBarButton extends StatelessWidget {
   Widget build(BuildContext ctx) => ClipOval(
     child: Material(
       color: isEnabled
-          ? Theme.of(ctx).buttonTheme.colorScheme?.surface
+          ? Theme.of(ctx).colorScheme.primary
           : Theme.of(ctx).colorScheme.surfaceContainerHighest,
       child: InkWell(
         onTap: isEnabled ? onTap : null,
