@@ -3,7 +3,13 @@
 /// - Material 3 color scheme (light and dark)
 /// - Custom colors via ThemeExtension (status indicators, semantic colors)
 /// - Typography from Sense text theme
-/// - Component styles: buttons, app bars, input fields, chips, FABs, etc.
+/// - Component styles via button_styles.dart: buttons, app bars, input fields, chips, FABs
+///
+/// Color scheme strategy:
+/// - `senseColorScheme` is the canonical light color scheme, matching Sense's
+///   `colorScheme` variable used in `lightTheme()`. It applies the primary teal
+///   (#00A294) with essential surface/outline overrides.
+/// - `darkColorScheme` is the full dark palette from Sense.
 ///
 /// Entry point: `buildTheme(isLight: true/false)` — used by MaterialApp.
 import 'package:flutter/material.dart';
@@ -11,39 +17,7 @@ import 'package:flutter/services.dart';
 import 'package:dropslab_call/theme/color_scheme.dart';
 import 'package:dropslab_call/theme/text_themes.dart';
 import 'package:dropslab_call/theme/dimens.dart';
-
-// ---------------------------------------------------------------------------
-// Light color scheme — mirrors Sense's `lightColorScheme` exactly
-// ---------------------------------------------------------------------------
-final ColorScheme lightColorScheme = ColorScheme(
-  brightness: Brightness.light,
-  primary: primaryColor,
-  onPrimary: onPrimaryColor,
-  primaryContainer: primaryContainerColor,
-  onPrimaryContainer: onPrimaryContainerColor,
-  secondary: secondaryColor,
-  onSecondary: onSecondaryColor,
-  secondaryContainer: secondaryContainerColor,
-  onSecondaryContainer: onSecondaryContainerColor,
-  tertiary: tertiaryColor,
-  onTertiary: onTertiaryColor,
-  tertiaryContainer: tertiaryContainerColor,
-  onTertiaryContainer: onTertiaryContainerColor,
-  error: errorColor,
-  onError: onErrorColor,
-  errorContainer: errorContainerColor,
-  surfaceBright: surfaceColor1,
-  surface: surfaceColor,
-  onSurface: onSurfaceColor,
-  surfaceContainerHighest: surfaceVariantColor,
-  surfaceContainerLow: surfaceContainerLowColor,
-  onSurfaceVariant: onSurfaceVariantColor,
-  outline: outlineColor,
-  outlineVariant: outlineVariantColor,
-  inverseSurface: inverseSurfaceColor,
-  onInverseSurface: onInverseSurfaceColor,
-  inversePrimary: inversePrimaryColor,
-);
+import 'package:dropslab_call/theme/button_styles.dart';
 
 // ---------------------------------------------------------------------------
 // Dark color scheme — mirrors Sense's `darkColorScheme` exactly
@@ -79,20 +53,23 @@ final ColorScheme darkColorScheme = ColorScheme(
 );
 
 // ---------------------------------------------------------------------------
-// Simplified color scheme — used by Sense's `lightTheme` for quick reference
-// Provides the primary teal (#00A294) with essential surface/outline overrides
+// Canonical light color scheme — matches Sense's `colorScheme` variable
+// used in `lightTheme()`. Applies the brand teal (#00A294) as primary.
 // ---------------------------------------------------------------------------
-ColorScheme senseColorScheme = ColorScheme.light(
-  primary: Color(0xff00A294),
-  onPrimary: Colors.white,
+final ColorScheme senseColorScheme = ColorScheme.light(
+  primary: sensesPrimaryTeal,
+  onPrimary: onPrimaryColor,
   surfaceContainerLow: Color(0xffEEEEEE),
-  onSurfaceVariant: Color(0xff444748),
-  outlineVariant: Color(0xffE0E3E3),
+  onSurfaceVariant: onSurfaceVariantColor,
+  outlineVariant: outlineVariantColor,
   outline: Color(0xffC4C7C8),
   secondaryContainer: Color(0xffF0F0F0),
   onSecondaryContainer: Color(0xFF71787D),
-  onSurface: Color(0xff1C1B1B),
+  onSurface: onSurfaceColor,
 );
+
+/// Sense brand primary teal — used across both light and dark themes
+const Color sensesPrimaryTeal = Color(0xff00A294);
 
 // ---------------------------------------------------------------------------
 // Public API — called from MaterialApp in main.dart
@@ -111,7 +88,7 @@ ThemeData buildTheme({required bool isLight}) {
 ThemeData _buildLightTheme() => ThemeData(
       useMaterial3: true,
       colorScheme: senseColorScheme,
-      scaffoldBackgroundColor: const Color(0xFFFCFCFC),
+      scaffoldBackgroundColor: backgroundColor,
 
       // Custom semantic colors (status indicators, etc.)
       extensions: <ThemeExtension<CustomColors>>[
@@ -163,33 +140,15 @@ ThemeData _buildLightTheme() => ThemeData(
         extendedSizeConstraints: BoxConstraints(minHeight: Px.k48, maxHeight: Px.k48),
       ),
 
-      // Elevated button: full-width stadium shape, primary color, 48px height
+      // Button styles — reused from button_styles.dart (Sense design system)
       elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: senseColorScheme.primary,
-          foregroundColor: senseColorScheme.onPrimary,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
-          maximumSize: Size(double.maxFinite, Px.k48),
-          minimumSize: Size(double.maxFinite, Px.k48),
-        ),
+        style: senseElevatedButtonStyle(senseColorScheme),
       ),
-
-      // Outlined button: primary border, slight corner radius
       outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          foregroundColor: senseColorScheme.primary,
-          side: BorderSide(color: senseColorScheme.primary),
-          maximumSize: Size(double.maxFinite, Px.k48),
-          minimumSize: Size(double.maxFinite, Px.k48),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-        ),
+        style: senseOutlinedButtonStyle(senseColorScheme),
       ),
-
-      // Text button: primary-colored text
       textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(
-          foregroundColor: senseColorScheme.primary,
-        ),
+        style: senseTextButtonStyle(senseColorScheme),
       ),
 
       // Chip: rounded with outline border, Sense color scheme
@@ -208,9 +167,9 @@ ThemeData _buildLightTheme() => ThemeData(
 
       // Text selection: teal cursor and selection handles
       textSelectionTheme: TextSelectionThemeData(
-        cursorColor: const Color(0xff00A294),
-        selectionColor: const Color(0xff00A294).withValues(alpha: 0.4),
-        selectionHandleColor: const Color(0xff00A294),
+        cursorColor: sensesPrimaryTeal,
+        selectionColor: sensesPrimaryTeal.withValues(alpha: 0.4),
+        selectionHandleColor: sensesPrimaryTeal,
       ),
 
       // Input fields: filled with secondary container color, no visible border
@@ -290,31 +249,15 @@ ThemeData _buildDarkTheme() => ThemeData(
         foregroundColor: darkColorScheme.onTertiaryContainer,
       ),
 
-      // Elevated button: same stadium shape, dark primary color
+      // Button styles — reused from button_styles.dart (Sense design system)
       elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: darkColorScheme.primary,
-          foregroundColor: darkColorScheme.onPrimary,
-          maximumSize: Size(double.maxFinite, Px.k48),
-          minimumSize: Size(double.maxFinite, Px.k48),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
-        ),
+        style: senseElevatedButtonStyle(darkColorScheme),
       ),
-
-      // Outlined button: outline-colored border, stadium shape
       outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          foregroundColor: darkColorScheme.primary,
-          side: BorderSide(color: darkColorScheme.outline),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
-        ),
+        style: senseOutlinedButtonStyle(darkColorScheme, isDark: true),
       ),
-
-      // Text button: primary-colored text
       textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(
-          foregroundColor: darkColorScheme.primary,
-        ),
+        style: senseTextButtonStyle(darkColorScheme),
       ),
 
       // Chip: dark surface with outline border
