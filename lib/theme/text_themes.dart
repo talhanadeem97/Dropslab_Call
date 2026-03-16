@@ -1,6 +1,15 @@
+/// Typography definitions from Sense design system.
+/// Provides two text theme variants:
+/// - `textTheme`: Standard Material text styles with Sense-specific weights/sizes
+/// - `textThemeScale(context)`: Responsive text styles that scale with MediaQuery
+///
+/// Both variants follow Material 3 naming: display, headline, title, body, label
+/// in Large, Medium, Small sizes.
 import 'package:flutter/material.dart';
 import 'package:dropslab_call/theme/color_scheme.dart';
 
+/// Standard text theme — fixed sizes matching Sense's mobile text theme.
+/// Used as the default in ThemeData.textTheme.
 TextTheme get textTheme => TextTheme(
       displayLarge: TextStyle(fontWeight: FontWeight.w500, fontSize: 57),
       displayMedium: TextStyle(fontWeight: FontWeight.w500, fontSize: 45),
@@ -19,6 +28,9 @@ TextTheme get textTheme => TextTheme(
       bodySmall: TextStyle(fontWeight: FontWeight.w400, fontSize: 12, color: onSurfaceVariantColor),
     );
 
+/// Responsive text theme — sizes from Sense's `textThemeScale`, with
+/// line height ratios for better readability at varying screen sizes.
+/// Can be used in place of `textTheme` when responsive scaling is needed.
 TextTheme textThemeScale(BuildContext context) => TextTheme(
       displayLarge: TextStyle(fontSize: 34, fontWeight: FontWeight.bold, height: 1.2),
       displayMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.w600, height: 1.25),

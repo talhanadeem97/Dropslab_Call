@@ -1,3 +1,7 @@
+/// Barcode/QR scanner screen.
+/// Styling: Uses Sense theme colors via Theme.of(context) for AppBar and text.
+/// Note: Uses transparent AppBar background for camera overlay, with
+/// onInverseSurface color for text/icons to ensure readability on camera feed.
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -6,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_zxing/flutter_zxing.dart';
 import 'package:dropslab_call/services/app_volume_service.dart';
 import 'package:dropslab_call/vivoka/vivoka_sdk.dart';
+import 'package:dropslab_call/theme/theme_extensions.dart';
 import 'package:restart_app/restart_app.dart';
 
 import '../mixin/command_mixin.dart';
@@ -31,35 +36,41 @@ class BarcodeScannerState extends State<BarcodeScanner> with VivokaRouteCommands
   bool get isCallScreen => false;
   @override
   Widget build(BuildContext context) {
+    final scheme = context.colorScheme;
+    final customColors = context.themeExt;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         elevation: 0,
         scrolledUnderElevation: 0,
         titleSpacing: 3,
-        iconTheme: IconThemeData(color: Colors.white),
+        // Use onInverseSurface for icons/text over camera preview
+        iconTheme: IconThemeData(color: scheme.onInverseSurface),
         backgroundColor: Colors.transparent,
         actionsPadding: EdgeInsets.only(right: 20),
-        title: const Text('Back', style: TextStyle(color: Colors.white)),
+        title: Text(
+          'Back',
+          style: context.textTheme.titleMedium?.copyWith(color: scheme.onInverseSurface),
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 10),
             child: Text.rich(
               TextSpan(
                 children: [
-                  const TextSpan(
+                  TextSpan(
                     text: 'QR format e.g. ',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
+                    style: context.textTheme.bodySmall?.copyWith(
+                      color: scheme.onInverseSurface,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   TextSpan(
                     text: widget.formatType,
-                    style: const TextStyle(
-                      color: Colors.orange,
-                      fontSize: 12,
+                    // Use onHold (amber) for the format type highlight
+                    style: context.textTheme.bodySmall?.copyWith(
+                      color: customColors?.onHold ?? scheme.tertiary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

@@ -1,3 +1,6 @@
+/// Scan-to-proceed screen — allows scanning a QR code or entering a username to start a call.
+/// Styling: Uses Sense theme via ThemeData — AppBar, buttons, and MessageBar
+/// automatically inherit the global Sense theme.
 import 'dart:async';
 
 import 'package:dropslab_call/helper/internet_indicator.dart';
@@ -69,19 +72,15 @@ class _ScanToProceedScreenState extends State<ScanToProceedScreen> with VivokaRo
 
   @override
   Widget build(BuildContext context) {
+    // All styling comes from the global Sense theme:
+    // - AppBar inherits appBarTheme from buildTheme()
+    // - ElevatedButton inherits elevatedButtonTheme from buildTheme()
+    // - FloatingGlassButton uses theme's iconTheme and colorScheme
+    // - MessageBar uses inputDecorationTheme colors
     return Scaffold(
       appBar: AppBar(
         title: const Text('Scan to Proceed'),
         actions: [
-          /*StreamBuilder(
-            stream: InternetConnection().onStatusChange,
-            builder: (_, status) {
-              return status.data == InternetStatus.connected
-                  ? SFIcon(SFIcons.sf_wifi, fontSize: 18)
-                  : SFIcon(SFIcons.sf_wifi_slash, fontSize: 18);
-            },
-          ),*/
-
           FloatingGlassButton(sfIcon: SFIcons.sf_rectangle_portrait_and_arrow_forward, onTap: loading ? null : _logout),
         ],
       ),

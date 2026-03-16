@@ -1,3 +1,17 @@
+/// Main entry point for the Dropslab Call application.
+///
+/// Theme Integration (Sense Design System):
+/// - `buildTheme(isLight: true)` provides the light Sense theme as the default
+/// - `buildTheme(isLight: false)` provides the dark Sense theme for dark mode
+/// - Both themes are defined in lib/theme/app_theme.dart and include:
+///   * Material 3 color scheme with Sense's primary teal (#00A294)
+///   * Component styles for buttons, input fields, app bars, chips, FABs
+///   * CustomColors ThemeExtension for status/semantic colors
+///   * Typography from Sense's text theme
+///
+/// All screens reference the theme via Theme.of(context) — no hardcoded colors.
+/// Navigation logic, FluffyChat integration, AR features, and calling
+/// functionality remain unchanged.
 import 'package:dropslab_call/theme/app_theme.dart';
 import 'package:dropslab_call/ui/app_bootstrap_screen.dart';
 import 'package:flutter/foundation.dart';
@@ -60,6 +74,7 @@ class MyApp extends StatelessWidget {
       navigatorKey: appNavigatorKey,
       initialRoute: AppBootstrapScreen.route,
       debugShowCheckedModeBanner: false,
+      // Sense theme integration — light and dark themes from buildTheme()
       theme: buildTheme(isLight: true),
       darkTheme: buildTheme(isLight: false),
       onGenerateRoute: (settings) {
@@ -95,124 +110,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
-/*class RoomListPage extends StatefulWidget {
-  const RoomListPage({super.key});
-  @override
-  State<RoomListPage> createState() => _RoomListPageState();
-}
-
-class _RoomListPageState extends State<RoomListPage> {
-  Future<void> _logout() async {
-    final client = context.read<Client>();
-    await context.read<VoipService>().stop();
-    await client.logout();
-
-    if (!mounted) return;
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const LoginPage()),
-          (_) => false,
-    );
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    SchedulerBinding.instance.addPostFrameCallback((_) async {
-      if (!mounted) return;
-      await context.read<VoipService>().start();
-      VivokaSdkFlutter.events().listen((e) {
-        if (e.type == 'command') {
-          print("COMMAND: ${e.text}");
-        }
-      });
-
-
-    });
-  }
-
-  Future<void> _startVoiceCall(Room room) async {
-    final other = room.directChatMatrixID;
-    final nav = appNavigatorKey.currentState;
-    if (!mounted) return;
-    await context.read<VoipService>().callUser(
-      roomId: room.id,
-      userId: other ?? '',
-      type: CallType.kVoice,
-    );
-
-    if (!mounted) return;
-
-    if (nav == null) return;
-    final currentName = ModalRoute.of(nav.context)?.settings.name;
-    if (currentName != CallScreen.route) {
-      nav.pushNamed(CallScreen.route);
-    }
-  }
-
-  Future<void> _startVideoCall(Room room) async {
-    final other = room.directChatMatrixID;
-    print(other);
-    final nav = appNavigatorKey.currentState;
-    if (!mounted) return;
-    await context.read<VoipService>().callUser(
-      roomId: room.id,
-      userId: other ?? '',
-      type: CallType.kVideo,
-    );
-
-    if (!mounted) return;
-    if (nav == null) return;
-    final currentName = ModalRoute.of(nav.context)?.settings.name;
-    if (currentName != CallScreen.route) {
-      nav.pushNamed(CallScreen.route);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final client = context.read<Client>();
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Rooms'),
-        actions: [
-          IconButton(onPressed: _logout, icon: const Icon(Icons.logout,color: Colors.grey,)),
-        ],
-      ),
-      body: StreamBuilder(
-        stream: client.onSync.stream,
-        builder: (_, _) {
-          final rooms = client.rooms;
-          return ListView.separated(
-            itemCount: rooms.length,
-            itemBuilder: (_, i) {
-              final r = rooms[i];
-              return ListTile(
-                horizontalTitleGap: 10,
-                leading: NameAvatar(
-                  name: r.getLocalizedDisplayname(),
-                  isTwoChar: false,
-                  radius: 25,
-                  backgroundColor: Colors.grey,
-                  textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.w500,color: Colors.white),
-                ),
-                title: Text(r.getLocalizedDisplayname()),
-                trailing: Row(mainAxisSize: MainAxisSize.min,children:  [
-                  IconButton(
-                    icon: const Icon(Icons.call, color: Colors.grey,),
-                    onPressed:()=> _startVoiceCall(r),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.videocam,color: Colors.grey,),
-                    onPressed: ()=>_startVideoCall(r),
-                  ),
-                ]),
-              );
-            }, separatorBuilder: (BuildContext context, int index) => Divider(indent: 20,endIndent: 20,thickness: 0.5,height: 30,),
-          );
-        },
-      ),
-    );
-  }
-}*/

@@ -1,9 +1,14 @@
+/// Bootstrap screen — handles initialization of all app services.
+/// Styling: Uses Sense theme colors via Theme.of(context) instead of hardcoded values.
+/// Note: This screen uses a dark background intentionally for AR hardware readability,
+/// mapped to the theme's inverseSurface/onInverseSurface color tokens.
 import 'dart:async';
 
 import 'package:dropslab_call/helper/device_info_plus.dart';
 import 'package:dropslab_call/main.dart';
 import 'package:dropslab_call/ui/login_screen.dart';
 import 'package:dropslab_call/ui/scan_to_proced.dart';
+import 'package:dropslab_call/theme/theme_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:matrix/matrix.dart';
@@ -231,32 +236,44 @@ class _AppBootstrapScreenState extends State<AppBootstrapScreen>  with VivokaRou
 
 
 
+  /// Builds a single step row with theme-aware colors.
+  /// Done steps use theme's success color (CustomColors.success),
+  /// active steps use the theme's primary color via CircularProgressIndicator,
+  /// pending steps use the theme's outline color.
   Widget _buildStep(String title, bool done) {
     final active = _currentStep == title;
+    final scheme = context.colorScheme;
+    final customColors = context.themeExt;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
           if (done)
-            const Icon(Icons.check, color: Colors.green, size: 16)
+            Icon(Icons.check, color: customColors?.success ?? scheme.primary, size: 16)
           else if (active)
-            const SizedBox(
+            SizedBox(
               width: 14,
               height: 14,
-              child: CircularProgressIndicator(strokeWidth: 2),
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: scheme.primary,
+              ),
             )
           else
-            const Icon(
+            Icon(
               Icons.radio_button_unchecked,
               size: 14,
-              color: Colors.white38,
+              color: scheme.onInverseSurface.withValues(alpha: 0.38),
             ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(fontSize: 13, color: Colors.white),
+              style: context.textTheme.bodySmall?.copyWith(
+                fontSize: 13,
+                color: scheme.onInverseSurface,
+              ),
             ),
           ),
         ],
@@ -273,27 +290,29 @@ class _AppBootstrapScreenState extends State<AppBootstrapScreen>  with VivokaRou
   @override
   Widget build(BuildContext context) {
     final steps = _steps.entries.toList();
+    final scheme = context.colorScheme;
+    final customColors = context.themeExt;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF070707),
+      // Dark background using theme's inverseSurface for AR hardware contrast
+      backgroundColor: scheme.inverseSurface,
       body: Center(
         child: Container(
           width: 360,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.6),
+            color: scheme.inverseSurface.withValues(alpha: 0.6),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white24),
+            border: Border.all(color: scheme.onInverseSurface.withValues(alpha: 0.24)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
+              Text(
                 'Initializing System',
-                style: TextStyle(
-                  fontSize: 18,
+                style: context.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: Colors.white,
+                  color: scheme.onInverseSurface,
                 ),
               ),
               const SizedBox(height: 10),
@@ -302,8 +321,8 @@ class _AppBootstrapScreenState extends State<AppBootstrapScreen>  with VivokaRou
                 const SizedBox(height: 12),
                 Text(
                   _error!,
-                  style: const TextStyle(
-                    color: Colors.redAccent,
+                  style: context.textTheme.bodySmall?.copyWith(
+                    color: customColors?.high ?? scheme.error,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
@@ -314,8 +333,8 @@ class _AppBootstrapScreenState extends State<AppBootstrapScreen>  with VivokaRou
                 const SizedBox(height: 6),
                 Text(
                   _hintMessage!,
-                  style: const TextStyle(
-                    color: Colors.orangeAccent,
+                  style: context.textTheme.bodySmall?.copyWith(
+                    color: customColors?.onHold ?? scheme.tertiary,
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                   ),

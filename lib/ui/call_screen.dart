@@ -1,6 +1,12 @@
+/// Call screen — handles active voice/video calls.
+/// Styling: Uses Sense theme colors via Theme.of(context) for all UI elements.
+/// Note: Call UI uses dark backgrounds intentionally for AR hardware readability.
+/// Semantic colors from CustomColors are used for action states (accept=success,
+/// reject=high/error, neutral=onInverseSurface).
 import 'dart:async';
 import 'dart:math';
 import 'package:dropslab_call/component/matrix_call_waveform.dart';
+import 'package:dropslab_call/theme/theme_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sficon/flutter_sficon.dart';
 import 'package:matrix/matrix.dart';
@@ -60,6 +66,13 @@ class _CallScreenState extends State<CallScreen> with VivokaRouteCommands {
     final isIncoming = call?.direction == CallDirection.kIncoming;
     final isVideo = call?.type == CallType.kVideo;
 
+    // Theme-aware colors for call actions
+    final scheme = context.colorScheme;
+    final customColors = context.themeExt;
+    final acceptColor = customColors?.success ?? scheme.primary;
+    final rejectColor = customColors?.high ?? scheme.error;
+    final neutralColor = scheme.onInverseSurface;
+
     return Scaffold(
       body: Column(
         children: [
@@ -67,9 +80,10 @@ class _CallScreenState extends State<CallScreen> with VivokaRouteCommands {
             child: Stack(
               alignment: Alignment.center,
               children: [
+                // Full-screen video background
                 Positioned.fill(
                   child: Container(
-                    color: Colors.black,
+                    color: scheme.inverseSurface,
                     child: remoteScreenReady
                         ? RTCVideoView(
                             voip.remoteScreenRenderer,
@@ -82,6 +96,7 @@ class _CallScreenState extends State<CallScreen> with VivokaRouteCommands {
                   ),
                 ),
                if(!toggleFullScreen)...[
+                 // Picture-in-picture view
                  if (call != null)
                   Positioned(
                     right: 12,
@@ -90,10 +105,11 @@ class _CallScreenState extends State<CallScreen> with VivokaRouteCommands {
                     height: 150,
                     child: FloatingGlassView(
                       borderRadius: 12,
-                      backgroundColor: Colors.black,
+                      backgroundColor: scheme.inverseSurface,
                       child: !switchView ? remoteView(remoteReady, voip, call) : localView(localReady, voip),
                     ),
                   ),
+                // Call timer / status bar
                 Positioned(
                   top: 12,
                   child: FloatingGlassView(
@@ -102,32 +118,41 @@ class _CallScreenState extends State<CallScreen> with VivokaRouteCommands {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       child: call == null
-                          ? const Text(
+                          ? Text(
                               'Preparing call...',
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                              style: context.textTheme.bodyMedium?.copyWith(
+                                color: neutralColor,
+                                fontWeight: FontWeight.w600,
+                              ),
                             )
                           : _timer(voip.connectedAt),
                     ),
                   ),
                 ),
+                // Connection lost banner
                 if (voip.connectionLostMessage != null)
                   Positioned(
                     top: 0,
                     left: 0,
                     right: 0,
                     child: Container(
-                      color: Colors.red.shade700.withValues(alpha: 0.92),
+                      color: rejectColor.withValues(alpha: 0.92),
                       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
                       child: SafeArea(
                         bottom: false,
                         child: Text(
                           voip.connectionLostMessage!,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13),
+                          style: context.textTheme.bodySmall?.copyWith(
+                            color: neutralColor,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
                         ),
                       ),
                     ),
                   ),
+                // Bottom action bar
                 Positioned(
                   bottom: 0,
                   child: SizedBox(
@@ -141,22 +166,23 @@ class _CallScreenState extends State<CallScreen> with VivokaRouteCommands {
                             spacing: 5,
                             children: [
                               if (call == null) ...[
+                                // No active call — show close button
                                 Flexible(
                                   flex: 1,
                                   fit: FlexFit.tight,
                                   child: FloatingGlassButton(
                                     onTap: () => voip.clearActive(),
-                                    iconColor: Colors.red,
-
+                                    iconColor: rejectColor,
                                     sfIcon: SFIcons.sf_xmark_circle_fill,
                                   ),
                                 ),
                               ] else if (isIncoming == true && call.state == CallState.kRinging) ...[
+                                // Incoming call ringing — accept/reject buttons
                                 Flexible(
                                   flex: 1,
                                   fit: FlexFit.tight,
                                   child: FloatingGlassButton(
-                                    iconColor: Colors.green,
+                                    iconColor: acceptColor,
                                     onTap: () => voip.answer(),
                                     sfIcon: SFIcons.sf_phone_fill,
                                   ),
@@ -165,19 +191,20 @@ class _CallScreenState extends State<CallScreen> with VivokaRouteCommands {
                                   flex: 1,
                                   fit: FlexFit.tight,
                                   child: FloatingGlassButton(
-                                    iconColor: Colors.red,
+                                    iconColor: rejectColor,
                                     onTap: () => voip.reject(),
                                     sfIcon: SFIcons.sf_phone_pause_fill,
                                   ),
                                 ),
                               ] else ...[
+                                // Active call controls
                                 Flexible(
                                   flex: 1,
                                   fit: FlexFit.tight,
                                   child: FloatingGlassButton(
                                     onTap: () => voip.setLocalCameraZoomWithCMD('zoom in'),
                                     sfIcon: SFIcons.sf_plus_magnifyingglass,
-                                    iconColor: Colors.white,
+                                    iconColor: neutralColor,
                                   ),
                                 ),
                                 Flexible(
@@ -186,7 +213,7 @@ class _CallScreenState extends State<CallScreen> with VivokaRouteCommands {
                                   child: FloatingGlassButton(
                                     onTap: () => voip.setLocalCameraZoomWithCMD('zoom out'),
                                     sfIcon: SFIcons.sf_minus_magnifyingglass,
-                                    iconColor: Colors.white,
+                                    iconColor: neutralColor,
                                   ),
                                 ),
                                 Flexible(
@@ -194,7 +221,7 @@ class _CallScreenState extends State<CallScreen> with VivokaRouteCommands {
                                   fit: FlexFit.tight,
                                   child: FloatingGlassButton(
                                     onTap: () => voip.toggleMic(),
-                                    iconColor: Colors.white,
+                                    iconColor: neutralColor,
                                     sfIcon: voip.micMuted ? SFIcons.sf_microphone_slash_fill : SFIcons.sf_microphone_fill,
                                     subWidget: SizedBox(
                                       height: 20,
@@ -202,8 +229,8 @@ class _CallScreenState extends State<CallScreen> with VivokaRouteCommands {
                                       child: MatrixCallWaveform(
                                         audioLevel: voip.smoothedLocalAudioLevel,
                                         isMuted: voip.micMuted,
-                                        options: const MatrixWaveformOptions(
-                                          color: Colors.white,
+                                        options: MatrixWaveformOptions(
+                                          color: neutralColor,
                                           spacing: 1,
                                           barCount: 5,
                                           minHeight: 3,
@@ -219,7 +246,7 @@ class _CallScreenState extends State<CallScreen> with VivokaRouteCommands {
                                     fit: FlexFit.tight,
                                     child: FloatingGlassButton(
                                       onTap: () => voip.toggleCam(),
-                                      iconColor: Colors.white,
+                                      iconColor: neutralColor,
                                       sfIcon: voip.camMuted ? SFIcons.sf_video_slash_fill : SFIcons.sf_video_fill,
                                     ),
                                   ),
@@ -231,7 +258,7 @@ class _CallScreenState extends State<CallScreen> with VivokaRouteCommands {
                                     onTap: () async {
                                       await voip.hangup();
                                     },
-                                    iconColor: Colors.red,
+                                    iconColor: rejectColor,
                                     sfIcon: SFIcons.sf_phone_down_fill,
                                   ),
                                 ),
@@ -252,15 +279,16 @@ class _CallScreenState extends State<CallScreen> with VivokaRouteCommands {
   }
 
   Widget remoteView(bool ready, VoipService voip, CallSession call) {
+    final scheme = context.colorScheme;
     return ready
         ? RTCVideoView(voip.remoteRenderer, objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover, mirror: false)
         : Container(
-            color: Colors.black,
+            color: scheme.inverseSurface,
             alignment: Alignment.center,
             child: Text(
               call.state == CallState.kRinging ? 'Ringing...' : 'Connecting video...',
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white),
+              style: context.textTheme.bodyMedium?.copyWith(color: scheme.onInverseSurface),
             ),
           );
   }
@@ -268,7 +296,7 @@ class _CallScreenState extends State<CallScreen> with VivokaRouteCommands {
   Widget localView(bool ready, VoipService voip) {
     return ready
         ? RTCVideoView(voip.localRenderer, mirror: false, objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover)
-        : const Center(child: CircularProgressIndicator());
+        : Center(child: CircularProgressIndicator(color: context.colorScheme.primary));
   }
 
   String _fmt(Duration d) {
@@ -280,8 +308,9 @@ class _CallScreenState extends State<CallScreen> with VivokaRouteCommands {
   }
 
   Widget _timer(DateTime? connectedAt) {
+    final timerColor = context.colorScheme.onInverseSurface;
     if (connectedAt == null) {
-      return const Text('00:00', style: TextStyle(color: Colors.white));
+      return Text('00:00', style: context.textTheme.bodyMedium?.copyWith(color: timerColor));
     }
     return StreamBuilder<int>(
       stream: Stream.periodic(const Duration(seconds: 1), (i) => i),
@@ -289,7 +318,10 @@ class _CallScreenState extends State<CallScreen> with VivokaRouteCommands {
         final d = DateTime.now().difference(connectedAt);
         return Text(
           _fmt(d),
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+          style: context.textTheme.bodyMedium?.copyWith(
+            color: timerColor,
+            fontWeight: FontWeight.w600,
+          ),
         );
       },
     );

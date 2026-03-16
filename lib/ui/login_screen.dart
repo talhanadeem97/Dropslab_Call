@@ -1,3 +1,6 @@
+/// Login screen — handles Matrix authentication.
+/// Styling: Uses Sense theme via ThemeData — AppBar, buttons, and inputs
+/// automatically inherit the global Sense theme. No hardcoded colors needed.
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -42,7 +45,6 @@ class _LoginPageState extends State<LoginPage> with VivokaRouteCommands {
     setState(() => loading = true);
     try {
       final client = context.read<Client>();
-    //  await client.checkHomeserver(Uri.https('matrix.dropslab.com', ''));
 
       await client.login(
         LoginType.mLoginPassword,
@@ -78,7 +80,6 @@ class _LoginPageState extends State<LoginPage> with VivokaRouteCommands {
     try {
       final nav = appNavigatorKey.currentState;
       if (nav == null) return;
-      //  LOGIN:U:john;P:123456;;
       final String? code = await nav.pushNamed<String?>(BarcodeScanner.route, arguments: 'LOGIN:U:<user>;P:<password>;;');
       if (code != null) {
         final (username, password) = MatrixTextHelper.handleQR(code)!;
@@ -91,6 +92,10 @@ class _LoginPageState extends State<LoginPage> with VivokaRouteCommands {
 
   @override
   Widget build(BuildContext context) {
+    // All styling comes from the global Sense theme:
+    // - AppBar inherits appBarTheme from buildTheme()
+    // - ElevatedButton inherits elevatedButtonTheme from buildTheme()
+    // - MessageBar uses inputDecorationTheme colors
     return Scaffold(
       appBar: AppBar(title: const Text('Login')),
       body: Center(
